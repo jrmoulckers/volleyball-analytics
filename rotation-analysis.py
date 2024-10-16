@@ -85,19 +85,23 @@ def should_add_player(player: player, players: MutableSequence[player], rotation
     rotation_position = get_rotation_position(len(current_rotation) + 1, len(rotations))
     valid_rotation = (player not in current_rotation) and (player.rotation_number in (-1, rotation_position))
 
+    is_first_rotation = len(rotations) == 1
+    previous_rotation_position = len(current_rotation) - 1
+    is_correct_position = rotations[-2][previous_rotation_position] == player if not is_first_rotation else True 
+
     substituted_player = rotations[-2] if len(rotations) >= 2 else None 
     valid_substitution = is_more_skilled(player, substituted_player, rotation_position) if GREEDY_SUBSTITUTION_STRATEGY and substituted_player is not None else True
-    return valid_gender and valid_rotation and valid_substitution
+    return valid_gender and valid_rotation and valid_substitution and is_correct_position
 
 def get_top_lineups(players: MutableSequence[player], rotations: MutableSequence[MutableSequence[player]] = [[]]):
     lineup_size = min(len(players), lineup.MAX_LINEUP_SIZE)
     current_rotation = rotations[-1]
-    print(len(current_rotation))
     if len(current_rotation) < lineup_size:
         top_lineup = (0, [[]])
         for p in players:
             rotations_copy = copy.deepcopy(rotations)
-            if should_add_player(p, players, rotations):
+            should_add = should_add_player(p, players, rotations)
+            if should_add:
                 players_copy = copy.deepcopy(players)
                 rotations_copy[-1].append(copy.deepcopy(p))
                 current_lineup = get_top_lineups(players_copy, rotations_copy)
